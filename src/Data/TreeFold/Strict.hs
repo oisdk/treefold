@@ -33,6 +33,9 @@ import Data.List.NonEmpty (NonEmpty(..))
 --
 -- Will construct a right-heavy tree.
 --
+-- >>> (treeFold (:*:) Empty . map Leaf) [1,2,3,4,5]
+-- ((Leaf 1 :*: Leaf 2) :*: (Leaf 3 :*: Leaf 4)) :*: Leaf 5
+--
 -- Other uses for this function include more stable floating-point
 -- summation. The following sum algorithm:
 --
