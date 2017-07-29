@@ -8,6 +8,7 @@ import qualified Data.TreeFold.Strict as Strict
 import           System.Random
 
 import           Control.Monad
+import           Data.Foldable
 
 double :: IO Double
 double = randomIO
@@ -19,8 +20,9 @@ atSize n =
          bgroup
              (show n)
              [ bench "TreeFold" $ whnf (treeFold (+) 0) xs
-             , bench "Strict" $ whnf (Strict.treeFold (+) 0) xs
-             , bench "sum" $ whnf sum xs ]
+             , bench "TreeFold.Strict" $ whnf (Strict.treeFold (+) 0) xs
+             , bench "sum" $ whnf sum xs
+             , bench "foldl'" $ whnf (foldl' (+) 0) xs]
 
 
 main :: IO ()
