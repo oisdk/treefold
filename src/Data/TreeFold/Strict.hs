@@ -2,6 +2,9 @@
 -- way. These can be useful for constructing balanced binary trees, or more
 -- stable summation.
 --
+-- Adapted from
+-- <http://www.mail-archive.com/haskell@haskell.org/msg01788.html here>.
+--
 -- This is a strict version of "Data.TreeFold".
 module Data.TreeFold.Strict where
 
