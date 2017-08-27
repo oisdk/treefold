@@ -42,7 +42,7 @@ unionAtSize n =
                whnf
                    (Parallel.treeFoldMap
                         (Parallel.rparWith Parallel.rseq)
-                        8
+                        10000
                         Set.singleton
                         Set.union
                         Set.empty)
@@ -57,5 +57,5 @@ unionAtSize n =
 main :: IO ()
 main =
     defaultMain
-        [ bgroup "union" (map unionAtSize [1000000])
-        , bgroup "sums" (map sumAtSize [1000000])]
+        [ bgroup "union" (map unionAtSize [100000])
+        , bgroup "sums" (map sumAtSize [100000])]

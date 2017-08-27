@@ -5,34 +5,44 @@ module Data.TreeFold.Parallel
   ,treeFoldMapNonEmpty
   ,rseq
   ,rdeepseq
-  ,rparWith)
+  ,rparWith
+  ,parSeq)
   where
 
 import           Control.Parallel.Strategies
 import           Data.List.NonEmpty          (NonEmpty (..))
 
-import           Data.TreeFold               (pairFold, pairFoldMap)
+import qualified Data.TreeFold.Strict as Strict
+
+import           Control.Arrow               (first)
+import           Data.List                   (splitAt, unfoldr)
 
 treeFold :: Strategy a -> Int -> (a -> a -> a) -> a -> [a] -> a
 treeFold _ _ _ z []     = z
 treeFold s n f _ (x:xs) = treeFoldNonEmpty s n f (x :| xs)
 
 treeFoldNonEmpty :: Strategy a -> Int -> (a -> a -> a) -> NonEmpty a -> a
-treeFoldNonEmpty s n f = go n
-  where
-    go _ (x :| [])  = x
-    go 0 xs         = go n (xs `using` traverse s)
-    go m (a :| b:l) = go (m-1) (f a b :| pairFold f l)
+treeFoldNonEmpty s n f =
+    Strict.treeFoldNonEmpty f .
+    runEval . traverse (s . Strict.treeFoldNonEmpty f) . chunk (2 ^ n)
 
 treeFoldMap :: Strategy a -> Int -> (b -> a) -> (a -> a -> a) -> a -> [b] -> a
-treeFoldMap _ _ _ _ z [] = z
+treeFoldMap _ _ _ _ z []     = z
 treeFoldMap s n c f _ (x:xs) = treeFoldMapNonEmpty s n c f (x :| xs)
 
 treeFoldMapNonEmpty :: Strategy a -> Int -> (b -> a) -> (a -> a -> a) -> NonEmpty b -> a
-treeFoldMapNonEmpty s n c f = once
-  where
-    once (x :| []) = c x
-    once (a :| b:l) = go (n-1) (f (c a) (c b) :| pairFoldMap c f l)
-    go _ (x :| [])  = x
-    go 0 xs         = go n (xs `using` traverse s)
-    go m (a :| b:l) = go (m-1) (f a b :| pairFold f l)
+treeFoldMapNonEmpty s n c f =
+    Strict.treeFoldNonEmpty f .
+    runEval . traverse (s . Strict.treeFoldMapNonEmpty c f) . chunk (2 ^ n)
+
+chunk :: Int -> NonEmpty a -> NonEmpty (NonEmpty a)
+chunk n = toNonEmpty . unfoldr f . toList where
+  f []     = Nothing
+  f (x:xs) = (Just . first (x:|) . splitAt (n-1)) xs
+  toNonEmpty (x:xs) = x :| xs
+  toNonEmpty [] = error "Data.TreeFold.Parallel.chunk: empty list"
+  toList (x :| xs) = x:xs
+
+parSeq :: Strategy a
+parSeq = rparWith rseq
+{-# INLINE parSeq #-}
