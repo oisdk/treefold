@@ -2,7 +2,10 @@ module Data.TreeFold.Parallel
   (treeFold
   ,treeFoldNonEmpty
   ,treeFoldMap
-  ,treeFoldMapNonEmpty)
+  ,treeFoldMapNonEmpty
+  ,rseq
+  ,rdeepseq
+  ,rparWith)
   where
 
 import           Control.Parallel.Strategies
@@ -10,23 +13,26 @@ import           Data.List.NonEmpty          (NonEmpty (..))
 
 import           Data.TreeFold               (pairFold, pairFoldMap)
 
-treeFold :: Int -> (a -> a -> a) -> a -> [a] -> a
-treeFold _ _ z []     = z
-treeFold n f _ (x:xs) = treeFoldNonEmpty n f (x :| xs)
+treeFold :: Strategy a -> Int -> (a -> a -> a) -> a -> [a] -> a
+treeFold _ _ _ z []     = z
+treeFold s n f _ (x:xs) = treeFoldNonEmpty s n f (x :| xs)
 
-treeFoldNonEmpty :: Int -> (a -> a -> a) -> NonEmpty a -> a
-treeFoldNonEmpty n f = go n
+treeFoldNonEmpty :: Strategy a -> Int -> (a -> a -> a) -> NonEmpty a -> a
+treeFoldNonEmpty s n f = go n
   where
     go _ (x :| [])  = x
-    go 0 xs         = go n (xs `using` parTraversable rseq)
+    go 0 xs         = go n (xs `using` traverse s)
     go m (a :| b:l) = go (m-1) (f a b :| pairFold f l)
 
-treeFoldMap :: Int -> (b -> a) -> (a -> a -> a) -> a -> [b] -> a
-treeFoldMap _ _ _ z [] = z
-treeFoldMap n c f _ (x:xs) = treeFoldMapNonEmpty n c f (x :| xs)
+treeFoldMap :: Strategy a -> Int -> (b -> a) -> (a -> a -> a) -> a -> [b] -> a
+treeFoldMap _ _ _ _ z [] = z
+treeFoldMap s n c f _ (x:xs) = treeFoldMapNonEmpty s n c f (x :| xs)
 
-treeFoldMapNonEmpty :: Int -> (b -> a) -> (a -> a -> a) -> NonEmpty b -> a
-treeFoldMapNonEmpty n c f = go
+treeFoldMapNonEmpty :: Strategy a -> Int -> (b -> a) -> (a -> a -> a) -> NonEmpty b -> a
+treeFoldMapNonEmpty s n c f = once
   where
-    go (x :| []) = c x
-    go (a :| b:l) = treeFoldNonEmpty n f (f (c a) (c b) :| pairFoldMap c f l)
+    once (x :| []) = c x
+    once (a :| b:l) = go (n-1) (f (c a) (c b) :| pairFoldMap c f l)
+    go _ (x :| [])  = x
+    go 0 xs         = go n (xs `using` traverse s)
+    go m (a :| b:l) = go (m-1) (f a b :| pairFold f l)
