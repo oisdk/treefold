@@ -25,9 +25,9 @@ sumAtSize n =
     \xs ->
          bgroup
              (show n)
-             [ bench "TreeFold.Parallel" $ whnf (Parallel.treeFold (Parallel.rparWith Parallel.rseq) 6 (+) 0) xs
-             , bench "TreeFold" $ whnf (treeFold (+) 0) xs
-             , bench "TreeFold.Strict" $ whnf (Strict.treeFold (+) 0) xs
+             [ bench "Parallel" $ whnf (Parallel.treeFold (Parallel.rparWith Parallel.rseq) 6 (+) 0) xs
+             , bench "Lazy" $ whnf (treeFold (+) 0) xs
+             , bench "Strict" $ whnf (Strict.treeFold (+) 0) xs
              , bench "sum" $ whnf sum xs
              , bench "foldl'" $ whnf (foldl' (+) 0) xs]
 
@@ -38,7 +38,7 @@ unionAtSize n =
     \xs ->
          bgroup
              (show n)
-             [ bench "TreeFold.Parallel" $
+             [ bench "Parallel" $
                whnf
                    (Parallel.treeFoldMap
                         (Parallel.rparWith Parallel.rseq)
@@ -47,9 +47,9 @@ unionAtSize n =
                         Set.union
                         Set.empty)
                    xs
-             , bench "TreeFold.Strict" $
+             , bench "Strict" $
                whnf (Strict.treeFoldMap Set.singleton Set.union Set.empty) xs
-             , bench "TreeFold" $
+             , bench "Lazy" $
                whnf (treeFoldMap Set.singleton Set.union Set.empty) xs]
 
 
