@@ -1,6 +1,10 @@
 name:                treefold
 version:             0.1.0.0
 homepage:            https://github.com/oisdk/treefold
+description:         Provides folds which try to combine elements in a balanced way.
+                     These can be useful for constructing balanced binary trees, or more
+                     stable summation.
+synopsis:            Provides folds which try to combine elements in a balanced way.
 license:             MIT
 license-file:        LICENSE
 author:              Donnacha Oisín Kidney
