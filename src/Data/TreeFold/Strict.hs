@@ -1,11 +1,4 @@
--- | This module provides folds which try to combine elements in a balanced
--- way. These can be useful for constructing balanced binary trees, or more
--- stable summation.
---
--- Adapted from
--- <http://www.mail-archive.com/haskell@haskell.org/msg01788.html here>.
---
--- This is a strict version of "Data.TreeFold".
+-- | This module provides strict versions of the functions from "Data.TreeFold".
 module Data.TreeFold.Strict where
 
 import Data.List.NonEmpty (NonEmpty(..))
@@ -18,57 +11,30 @@ import Data.List.NonEmpty (NonEmpty(..))
 --             deriving Show
 -- :}
 
--- | Reduces a list of values using a binary operation, trying as much as
--- possible to balance. For instance, given the above binary tree type, the
--- operation:
+-- | A strict version of 'Data.TreeFold.treeFold'.
 --
 -- >>> (treeFold (:*:) Empty . map Leaf) [1,2,3,4]
 -- (Leaf 1 :*: Leaf 2) :*: (Leaf 3 :*: Leaf 4)
---
--- Will construct a balanced binary tree, whereas the equivalent using a normal
--- fold:
---
--- >>> foldr ((:*:) . Leaf) Empty [1,2,3,4]
--- Leaf 1 :*: (Leaf 2 :*: (Leaf 3 :*: (Leaf 4 :*: Empty)))
---
--- Will construct a right-heavy tree.
---
 -- >>> (treeFold (:*:) Empty . map Leaf) [1,2,3,4,5]
 -- ((Leaf 1 :*: Leaf 2) :*: (Leaf 3 :*: Leaf 4)) :*: Leaf 5
---
--- Other uses for this function include more stable floating-point
--- summation. The following sum algorithm:
---
 -- >>> treeFold (+) 0 (replicate 10 9.9)
 -- 99.0
---
--- Will have O(log n) error growth for summing n numbers, in comparison to
--- O(n) for:
---
--- >>> sum (replicate 10 9.9)
--- 99.00000000000001
---
--- This function is the strict version of 'Data.TreeFold.treeFold'.
 treeFold :: (a -> a -> a) -> a -> [a] -> a
 treeFold _ z [] = z
 treeFold f _ (x:xs) = treeFoldNonEmpty f (x :| xs)
 
--- | Perform a tree fold after a map.
+-- | A strict version of 'Data.TreeFold.treeFoldMap'.
 --
 -- >>> treeFoldMap Leaf (:*:) Empty [1,2,3,4]
 -- (Leaf 1 :*: Leaf 2) :*: (Leaf 3 :*: Leaf 4)
---
--- This function is a strict version of 'Data.TreeFold.treeFoldMap'.
 treeFoldMap :: (b -> a) -> (a -> a -> a) -> a -> [b] -> a
 treeFoldMap _ _ z [] = z
 treeFoldMap c f _ (x:xs) = treeFoldMapNonEmpty c f (x :| xs)
 
--- | Apply a combining function to pairs in a list.
+-- | A strict version of 'Data.TreeFold.pairFold'.
 --
 -- >>> pairFold (++) ["a","b","c","d","e"]
 -- ["ab","cd","e"]
---
--- This function is a strict version of 'Data.TreeFold.pairFold'.
 pairFold :: (a -> a -> a) -> [a] -> [a]
 pairFold f = go
   where
@@ -77,12 +43,10 @@ pairFold f = go
         in z `seq` (z : go rest)
     go xs = xs
 
--- | Apply a combining function to pairs in a list, after a map.
+-- | A strict version of 'Data.TreeFold.pairFoldMap'.
 --
 -- >>> pairFoldMap (:[]) (++) "abcde"
 -- ["ab","cd","e"]
---
--- This function is a strict version of 'Data.TreeFold.pairFoldMap'.
 pairFoldMap :: (b -> a) -> (a -> a -> a) -> [b] -> [a]
 pairFoldMap c f = go
   where
@@ -94,8 +58,7 @@ pairFoldMap c f = go
         let z = c x
         in z `seq` [z]
 
--- | Perform a tree fold on a non empty input. This function is a strict version
--- of 'Data.TreeFold.treeFoldNonEmpty'.
+-- | A strict version of 'Data.TreeFold.treeFoldNonEmpty'.
 treeFoldNonEmpty :: (a -> a -> a) -> NonEmpty a -> a
 treeFoldNonEmpty f = go
   where
@@ -104,8 +67,7 @@ treeFoldNonEmpty f = go
         let z = f x y
         in z `seq` go (z :| pairFold f rest)
 
--- | Perform a tree fold after a map on non-empty input. This function is a
--- strict version of 'Data.TreeFold.treeFoldMapNonEmpty'.
+-- | A strict version of 'Data.TreeFold.treeFoldMapNonEmpty'.
 treeFoldMapNonEmpty :: (b -> a) -> (a -> a -> a) -> NonEmpty b -> a
 treeFoldMapNonEmpty c f = go
   where

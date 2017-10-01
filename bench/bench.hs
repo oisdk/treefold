@@ -4,6 +4,7 @@ import           Criterion.Main
 
 import           Data.TreeFold
 import qualified Data.TreeFold.Parallel as Parallel
+import qualified Data.TreeFold.Foldable as Foldable
 import qualified Data.TreeFold.Strict   as Strict
 
 import           System.Random
@@ -25,8 +26,9 @@ sumAtSize n =
     \xs ->
          bgroup
              (show n)
-             [ bench "Parallel" $ whnf (Parallel.treeFold (Parallel.rparWith Parallel.rseq) 6 (+) 0) xs
+             [ bench "Parallel" $ whnf (Parallel.treeFold Parallel.rpar 6 (+) 0) xs
              , bench "Lazy" $ whnf (treeFold (+) 0) xs
+             , bench "Foldable" $ whnf (Foldable.treeFold (+) 0) xs
              , bench "Strict" $ whnf (Strict.treeFold (+) 0) xs
              , bench "sum" $ whnf sum xs
              , bench "foldl'" $ whnf (foldl' (+) 0) xs]
@@ -41,8 +43,8 @@ unionAtSize n =
              [ bench "Parallel" $
                whnf
                    (Parallel.treeFoldMap
-                        (Parallel.rparWith Parallel.rseq)
-                        10000
+                        Parallel.rpar
+                        10
                         Set.singleton
                         Set.union
                         Set.empty)
@@ -50,7 +52,9 @@ unionAtSize n =
              , bench "Strict" $
                whnf (Strict.treeFoldMap Set.singleton Set.union Set.empty) xs
              , bench "Lazy" $
-               whnf (treeFoldMap Set.singleton Set.union Set.empty) xs]
+               whnf (treeFoldMap Set.singleton Set.union Set.empty) xs
+             , bench "Foldable" $
+               whnf (Foldable.treeFoldMap Set.singleton Set.union Set.empty) xs]
 
 
 
@@ -58,4 +62,5 @@ main :: IO ()
 main =
     defaultMain
         [ bgroup "union" (map unionAtSize [100000])
-        , bgroup "sums" (map sumAtSize [100000])]
+        , bgroup "sums" (map sumAtSize [100000])
+        ]
