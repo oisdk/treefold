@@ -40,21 +40,12 @@ unionAtSize n =
     \xs ->
          bgroup
              (show n)
-             [ bench "Parallel" $
-               whnf
-                   (Parallel.treeFoldMap
-                        Parallel.rpar
-                        10
-                        Set.singleton
-                        Set.union
-                        Set.empty)
-                   xs
-             , bench "Strict" $
-               whnf (Strict.treeFoldMap Set.singleton Set.union Set.empty) xs
-             , bench "Lazy" $
-               whnf (treeFoldMap Set.singleton Set.union Set.empty) xs
-             , bench "Foldable" $
-               whnf (Foldable.treeFoldMap Set.singleton Set.union Set.empty) xs]
+             [ bench "Parallel" $ whnf (Parallel.treeFoldMap Parallel.rpar 10 Set.singleton Set.union Set.empty) xs
+             , bench "Strict" $ whnf (Strict.treeFoldMap Set.singleton Set.union Set.empty) xs
+             , bench "Lazy" $ whnf (treeFoldMap Set.singleton Set.union Set.empty) xs
+             , bench "Foldable" $ whnf (Foldable.treeFoldMap Set.singleton Set.union Set.empty) xs
+             , bench "foldl'" $ whnf (foldl' (flip Set.insert) Set.empty) xs
+             , bench "foldMap" $ whnf (foldMap Set.singleton) xs]
 
 
 
