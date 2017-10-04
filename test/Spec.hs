@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE TemplateHaskell      #-}
 
 import           Test.DocTest
@@ -26,7 +25,7 @@ prop_equivToLazy =
        n <- forAll $ Gen.int (Range.linear 0 100)
        lazy ===
            Parallel.treeFoldMapNonEmpty
-               Parallel.parSeq
+               Parallel.rpar
                n
                Leaf
                (:^:)
@@ -39,7 +38,7 @@ prop_lazyEmpty =
        Strict.treeFold (error "Strict.treeFold: not lazy enough") () [] === ()
        n <- forAll $ Gen.int (Range.linear 0 100)
        Parallel.treeFold
-           Parallel.parSeq
+           Parallel.rpar
            n
            (error "Parallel.treeFold: not lazy enough")
            ()
@@ -58,12 +57,12 @@ prop_equivNonEmpty =
            Strict.treeFoldNonEmpty (+) (x :| xs)
        n <- forAll $ Gen.int (Range.linear 0 100)
        Parallel.treeFold
-           Parallel.parSeq
+           Parallel.rpar
            n
            (+)
            (error "Parallel.treeFold: not lazy enough")
            (x : xs) ===
-           Parallel.treeFoldNonEmpty Parallel.parSeq n (+) (x :| xs)
+           Parallel.treeFoldNonEmpty Parallel.rpar n (+) (x :| xs)
 
 
 

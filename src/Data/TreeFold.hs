@@ -63,38 +63,15 @@ treeFoldMap :: (b -> a) -> (a -> a -> a) -> a -> [b] -> a
 treeFoldMap _ _ z [] = z
 treeFoldMap c f _ (x:xs) = treeFoldMapNonEmpty c f (x :| xs)
 
--- | Apply a combining function to pairs in a list.
---
--- >>> pairFold (++) ["a","b","c","d","e"]
--- ["ab","cd","e"]
---
--- For a strict version of this function see 'Data.TreeFold.Strict.pairFold'.
-pairFold :: (a -> a -> a) -> [a] -> [a]
-pairFold f = go
-  where
-    go (x:y:rest) = f x y : go rest
-    go xs = xs
-
--- | Apply a combining function to pairs in a list, after a map.
---
--- >>> pairFoldMap (:[]) (++) "abcde"
--- ["ab","cd","e"]
---
--- For a strict version of this function see 'Data.TreeFold.Strict.pairFoldMap'.
-pairFoldMap :: (b -> a) -> (a -> a -> a) -> [b] -> [a]
-pairFoldMap c f = go
-  where
-    go (x:y:rest) = f (c x) (c y) : go rest
-    go [] = []
-    go [x] = [c x]
-
 -- | Perform a tree fold on a non empty input. For a strict version of this
 -- function see 'Data.TreeFold.Strict.treeFoldNonEmpty'.
 treeFoldNonEmpty :: (a -> a -> a) -> NonEmpty a -> a
 treeFoldNonEmpty f = go
   where
     go (x :| []) = x
-    go (a :| b:l) = go (f a b :| pairFold f l)
+    go (a :| b:l) = go (f a b :| pairFold l)
+    pairFold (x:y:rest) = f x y : pairFold rest
+    pairFold xs = xs
 
 -- | Perform a tree fold after a map on non-empty input. For a strict version of
 -- this function see 'Data.TreeFold.Strict.treeFoldMapNonEmpty'.
@@ -102,4 +79,7 @@ treeFoldMapNonEmpty :: (b -> a) -> (a -> a -> a) -> NonEmpty b -> a
 treeFoldMapNonEmpty c f = go
   where
     go (x :| []) = c x
-    go (a :| b:l) = treeFoldNonEmpty f (f (c a) (c b) :| pairFoldMap c f l)
+    go (a :| b:l) = treeFoldNonEmpty f (f (c a) (c b) :| pairFoldMap l)
+    pairFoldMap (x:y:rest) = f (c x) (c y) : pairFoldMap rest
+    pairFoldMap [] = []
+    pairFoldMap [x] = [c x]

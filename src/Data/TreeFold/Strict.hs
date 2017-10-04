@@ -31,33 +31,6 @@ treeFoldMap :: (b -> a) -> (a -> a -> a) -> a -> [b] -> a
 treeFoldMap _ _ z [] = z
 treeFoldMap c f _ (x:xs) = treeFoldMapNonEmpty c f (x :| xs)
 
--- | A strict version of 'Data.TreeFold.pairFold'.
---
--- >>> pairFold (++) ["a","b","c","d","e"]
--- ["ab","cd","e"]
-pairFold :: (a -> a -> a) -> [a] -> [a]
-pairFold f = go
-  where
-    go (x:y:rest) =
-        let z = f x y
-        in z `seq` (z : go rest)
-    go xs = xs
-
--- | A strict version of 'Data.TreeFold.pairFoldMap'.
---
--- >>> pairFoldMap (:[]) (++) "abcde"
--- ["ab","cd","e"]
-pairFoldMap :: (b -> a) -> (a -> a -> a) -> [b] -> [a]
-pairFoldMap c f = go
-  where
-    go (x:y:rest) =
-        let z = f (c x) (c y)
-        in z `seq` (z : go rest)
-    go [] = []
-    go [x] =
-        let z = c x
-        in z `seq` [z]
-
 -- | A strict version of 'Data.TreeFold.treeFoldNonEmpty'.
 treeFoldNonEmpty :: (a -> a -> a) -> NonEmpty a -> a
 treeFoldNonEmpty f = go
@@ -65,7 +38,11 @@ treeFoldNonEmpty f = go
     go (x :| []) = x
     go (x :| y:rest) =
         let z = f x y
-        in z `seq` go (z :| pairFold f rest)
+        in z `seq` go (z :| pairFold rest)
+    pairFold (x:y:rest) =
+        let z = f x y
+        in z `seq` (z : pairFold rest)
+    pairFold xs = xs
 
 -- | A strict version of 'Data.TreeFold.treeFoldMapNonEmpty'.
 treeFoldMapNonEmpty :: (b -> a) -> (a -> a -> a) -> NonEmpty b -> a
@@ -74,4 +51,11 @@ treeFoldMapNonEmpty c f = go
     go (x :| []) = c x
     go (a :| b:l) =
         let z = f (c a) (c b)
-        in z `seq` treeFoldNonEmpty f (z :| pairFoldMap c f l)
+        in z `seq` treeFoldNonEmpty f (z :| pairFoldMap l)
+    pairFoldMap (x:y:rest) =
+        let z = f (c x) (c y)
+        in z `seq` (z : pairFoldMap rest)
+    pairFoldMap [] = []
+    pairFoldMap [x] =
+        let z = c x
+        in z `seq` [z]

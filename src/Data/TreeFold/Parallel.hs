@@ -54,7 +54,6 @@ import           Control.Parallel.Strategies (Strategy, rpar, using,
                                               withStrategy)
 import           Data.List.NonEmpty          (NonEmpty (..))
 
-import           Data.TreeFold               (pairFold, pairFoldMap)
 import qualified Data.TreeFold               as Lazy
 
 -- | A parallel version of 'Data.TreeFold.treeFold'.
@@ -70,7 +69,9 @@ treeFoldNonEmpty s n f
   where
     go _ (x :| [])  = x
     go 0 xs         = go n (xs `using` traverse s)
-    go m (a :| b:l) = go (m - 1) (f a b :| pairFold f l)
+    go m (a :| b:l) = go (m - 1) (f a b :| pairFold l)
+    pairFold (a:b:rest) = f a b : pairFold rest
+    pairFold xs = xs
 
 -- | A parallel version of 'Data.TreeFold.treeFoldMap'.
 treeFoldMap :: Strategy a -> Int -> (b -> a) -> (a -> a -> a) -> a -> [b] -> a
@@ -84,7 +85,14 @@ treeFoldMapNonEmpty s n c f
   | otherwise = once
   where
     once (x :| [])  = c x
-    once (a :| b:l) = go (n - 1) (f (c a) (c b) :| pairFoldMap c f l)
+    once (a :| b:l) = go (n - 1) (f (c a) (c b) :| pairFoldMap l)
     go _ (x :| [])  = x
     go 0 xs         = go n (xs `using` traverse s)
-    go m (a :| b:l) = go (m - 1) (f a b :| pairFold f l)
+    go m (a :| b:l) = go (m - 1) (f a b :| pairFold l)
+    pairFoldMap (x:y:rest) = f (c x) (c y) : pairFoldMap rest
+    pairFoldMap [x] = [c x]
+    pairFoldMap [] = []
+    pairFold (a:b:rest) = f a b : pairFold rest
+    pairFold xs = xs
+
+
