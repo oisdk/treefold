@@ -1,5 +1,5 @@
 name:                treefold
-version:             0.1.0.0
+version:             0.2.0.0
 homepage:            https://github.com/oisdk/treefold
 description:         Provides folds which try to combine elements in a balanced way.
                      These can be useful for constructing balanced binary trees, or more
@@ -9,7 +9,7 @@ license:             MIT
 license-file:        LICENSE
 author:              Donnacha Oisín Kidney
 maintainer:          mail@doisinkidney.com
-copyright:           2016 Donnacha Oisín Kidney
+copyright:           2017 Donnacha Oisín Kidney
 category:            Data
 build-type:          Simple
 extra-source-files:  README.md

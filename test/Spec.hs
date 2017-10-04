@@ -22,11 +22,8 @@ prop_equivToLazy =
     do xs <- forAll $ Gen.nonEmpty (Range.linear 1 100) Gen.alpha
        let lazy = treeFoldMapNonEmpty Leaf (:^:) xs
        lazy === Strict.treeFoldMapNonEmpty Leaf (:^:) xs
-       n <- forAll $ Gen.int (Range.linear 0 100)
        lazy ===
            Parallel.treeFoldMapNonEmpty
-               Parallel.rpar
-               n
                Leaf
                (:^:)
                xs
@@ -36,10 +33,7 @@ prop_lazyEmpty =
     property $
     do treeFold (error "treeFold: not lazy enough") () [] === ()
        Strict.treeFold (error "Strict.treeFold: not lazy enough") () [] === ()
-       n <- forAll $ Gen.int (Range.linear 0 100)
        Parallel.treeFold
-           Parallel.rpar
-           n
            (error "Parallel.treeFold: not lazy enough")
            ()
            [] ===
@@ -55,14 +49,11 @@ prop_equivNonEmpty =
            treeFoldNonEmpty (+) (x :| xs)
        Strict.treeFold (+) (error "treeFold: not lazy enough") (x : xs) ===
            Strict.treeFoldNonEmpty (+) (x :| xs)
-       n <- forAll $ Gen.int (Range.linear 0 100)
        Parallel.treeFold
-           Parallel.rpar
-           n
            (+)
            (error "Parallel.treeFold: not lazy enough")
            (x : xs) ===
-           Parallel.treeFoldNonEmpty Parallel.rpar n (+) (x :| xs)
+           Parallel.treeFoldNonEmpty (+) (x :| xs)
 
 
 

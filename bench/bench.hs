@@ -26,7 +26,7 @@ sumAtSize n =
     \xs ->
          bgroup
              (show n)
-             [ bench "Parallel" $ whnf (Parallel.treeFold Parallel.rpar 6 (+) 0) xs
+             [ bench "Parallel" $ whnf (Parallel.treeFold (+) 0) xs
              , bench "Lazy" $ whnf (treeFold (+) 0) xs
              , bench "Foldable" $ whnf (Foldable.treeFold (+) 0) xs
              , bench "Strict" $ whnf (Strict.treeFold (+) 0) xs
@@ -40,7 +40,8 @@ unionAtSize n =
     \xs ->
          bgroup
              (show n)
-             [ bench "Parallel" $ whnf (Parallel.treeFoldMap Parallel.rpar 10 Set.singleton Set.union Set.empty) xs
+             [ bench "Parallel" $ whnf (Parallel.treeFoldMap Set.singleton Set.union Set.empty) xs
+             , bench "fromList" $ whnf Set.fromList xs
              , bench "Strict" $ whnf (Strict.treeFoldMap Set.singleton Set.union Set.empty) xs
              , bench "Lazy" $ whnf (treeFoldMap Set.singleton Set.union Set.empty) xs
              , bench "Foldable" $ whnf (Foldable.treeFoldMap Set.singleton Set.union Set.empty) xs
@@ -53,5 +54,5 @@ main :: IO ()
 main =
     defaultMain
         [ bgroup "union" (map unionAtSize [100000])
-        , bgroup "sums" (map sumAtSize [100000])
+        , bgroup "sums" (map sumAtSize [1000000])
         ]
