@@ -36,10 +36,7 @@ treeFold f z xs =
 splitPar :: (a -> a -> a) -> (Int -> a) -> (Int -> a) -> Int -> a
 splitPar f = go
   where
-    go l r 0 = lt `seq` rt `seq` f lt rt
-      where
-        lt = l 0
-        rt = r 0
+    go l r 0 = f (l 0) (r 0)
     go l r n = lt `par` (rt `pseq` f lt rt)
       where
         lt = l m
